@@ -118,6 +118,7 @@ def run_base_trainer(job):
 
         history = trainer.train(with_pred=with_pred, last_only=last_only)
 
+
         # save history
         saver.write_history(history)
 

@@ -7,6 +7,7 @@
 import functools
 from collections import OrderedDict
 
+
 import tensorflow as tf
 from deephyper.core.utils import load_attr
 
@@ -35,6 +36,17 @@ def rmse(y_true, y_pred):
 
 def acc(y_true, y_pred):
     return tf.keras.metrics.categorical_accuracy(y_true, y_pred)
+
+
+def tunas(y_true, y_pred, params):
+    ac = acc(y_true, y_pred)
+    print('tunasssss')
+    beta = -0.4
+    target_params = 100_000
+    print(params, beta, target_params)
+    ob = ac + beta*tf.math.abs(params / target_params - 1)
+    print(ob)
+    return ob
 
 
 def sparse_perplexity(y_true, y_pred):
@@ -73,6 +85,8 @@ metrics_func["mean_squared_error"] = metrics_func["mse"] = mse
 metrics_func["root_mean_squared_error"] = metrics_func["rmse"] = rmse
 metrics_func["accuracy"] = metrics_func["acc"] = acc
 metrics_func["sparse_perplexity"] = sparse_perplexity
+
+metrics_func["tunas"] = metrics_func["tunas_obj"] = tunas
 
 metrics_func["tfp_r2"] = tfp_r2
 metrics_func["tfp_mse"] = tfp_mse
