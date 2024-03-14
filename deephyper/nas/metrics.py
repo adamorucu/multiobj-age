@@ -40,14 +40,15 @@ def acc(y_true, y_pred):
 
 def tunas(y_true, y_pred, params):
     ac = acc(y_true, y_pred)
-    print('tunasssss')
     beta = -0.4
     target_params = 100_000
-    print(params, beta, target_params)
-    ob = ac + beta*tf.math.abs(params / target_params - 1)
-    print(ob)
-    return ob
+    return ac + beta*tf.math.abs(params / target_params - 1)
 
+def mae_tunas(y_true, y_pred, params):
+    err = mae(y_true, y_pred)
+    beta = -0.4
+    target_params = 100_000
+    return beta*tf.math.abs(params / target_params - 1) - err
 
 def sparse_perplexity(y_true, y_pred):
     cross_entropy = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
@@ -87,6 +88,7 @@ metrics_func["accuracy"] = metrics_func["acc"] = acc
 metrics_func["sparse_perplexity"] = sparse_perplexity
 
 metrics_func["tunas"] = metrics_func["tunas_obj"] = tunas
+metrics_func["mae_tunas"] = metrics_func["mae_tunas_obj"] = mse_tunas
 
 metrics_func["tfp_r2"] = tfp_r2
 metrics_func["tfp_mse"] = tfp_mse

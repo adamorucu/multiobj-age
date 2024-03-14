@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from deephyper.core.exceptions import DeephyperRuntimeError
 from deephyper.nas.losses import selectLoss
-from deephyper.nas.metrics import selectMetric, tunas
+from deephyper.nas.metrics import selectMetric, tunas, mae_tunas
 
 logger = logging.getLogger(__name__)
 
@@ -119,10 +119,14 @@ class BaseTrainer:
                 n: selectM(m) for n, m in self.config[a.metrics].items()
             }
         if self.config[a.metrics] in ['tunas', 'tunas_obj'] or self.config[a.metrics][0] in ['tunas', 'tunas_obj']:
-            print("Doing TuNAS")
             def tunas_ob(y_pred, y_true):
                 return tunas(y_pred, y_true, self.model.count_params())
             self.metrics_name = tunas_ob
+
+        if self.config[a.metrics] in ['mae_tunas', 'mae_tunas_obj'] or self.config[a.metrics][0] in ['mae_tunas', 'mae_tunas_obj']:
+            def mae_tunas_ob(y_pred, y_true):
+                return mae_tunas(y_pred, y_true, self.model.count_params())
+            self.metrics_name = mae_tunas_ob
 
     def load_data(self):
         logger.debug("load_data")
