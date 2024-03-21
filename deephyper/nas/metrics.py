@@ -88,7 +88,7 @@ metrics_func["accuracy"] = metrics_func["acc"] = acc
 metrics_func["sparse_perplexity"] = sparse_perplexity
 
 metrics_func["tunas"] = metrics_func["tunas_obj"] = tunas
-metrics_func["mae_tunas"] = metrics_func["mae_tunas_obj"] = mse_tunas
+metrics_func["mae_tunas"] = metrics_func["mae_tunas_obj"] = mae_tunas
 
 metrics_func["tfp_r2"] = tfp_r2
 metrics_func["tfp_mse"] = tfp_mse
