@@ -11,6 +11,8 @@ from collections import OrderedDict
 import tensorflow as tf
 from deephyper.core.utils import load_attr
 
+from sklearn.metrics import f1_score
+
 
 def r2(y_true, y_pred):
     SS_res = tf.math.reduce_sum(tf.math.square(y_true - y_pred), axis=0)
@@ -37,12 +39,99 @@ def rmse(y_true, y_pred):
 def acc(y_true, y_pred):
     return tf.keras.metrics.categorical_accuracy(y_true, y_pred)
 
+def f1(y_true, y_pred):
+    y_pred_binary = tf.round(y_pred)
+    y_true = tf.cast(y_true, tf.float32)
+    
+    # True positives
+    true_positive = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(y_true, 1), tf.equal(y_pred_binary, 1)), tf.float32))
+    # False positives
+    false_positive = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(y_true, 0), tf.equal(y_pred_binary, 1)), tf.float32))
+    # False negatives
+    false_negative = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(y_true, 1), tf.equal(y_pred_binary, 0)), tf.float32))
+    
+    # Precision and Recall calculations
+    precision = true_positive / (true_positive + false_positive + tf.keras.backend.epsilon())
+    recall = true_positive / (true_positive + false_negative + tf.keras.backend.epsilon())
+    
+    # F1 score calculation
+    f1score = 2 * (precision * recall) / (precision + recall + tf.keras.backend.epsilon())
+    return f1score
+   
+    # print("Start f1")
+    # print(type(y_true))
+    # print(y_true.shape)
+    # for i in range(len(y_true)):
+    #     true = y_true[i]
+    #     pred = y_pred[i]
+    #     if true == pred == 1:
+    #         tp += 1
+    #     elif pred == 1 and true != pred:
+    #         fp += 1
+    #     elif pred == 0 and true != pred:
+    #         fn += 1
+    
+    # print('fp, fn')
+    # print(type(fn))
+    # print(type(y_pred))
+
+    # precision = true_positives / (tp + fp) if (tp + fp) > 0 else 0
+    # recall = true_positives / (tp + fn) if (tp + fn) > 0 else 0
+    # print('presicion recall')
+
+    # return 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    # # # return f1_score(y_true, y_pred)
+    # # # metr = tf.keras.metrics.F1Score(threshold=0.5)
+    # # # metr.update_state(y_true, y_pred)
+    # # # return metr.result()
+
+
+    # y_pred = tf.round(y_pred)  # Assuming y_pred comes from a sigmoid activation for binary classification
+    
+    # # Calculate Precision and Recall
+    # precision = tf.metrics.Precision()
+    # recall = tf.metrics.Recall()
+
+    # # Update states of the metrics
+    # precision.update_state(y_true, y_pred)
+    # recall.update_state(y_true, y_pred)
+    
+    # # Use TensorFlow operations to calculate F1 score
+    # p = precision.result()
+    # r = recall.result()
+    
+    # return 2 * (p * r) / (tf.add(p, r) + tf.keras.backend.epsilon())  # Use tf.keras.backend.epsilon() to avoid division by zero
+
+    # y_pred = tf.convert_to_tensor(y_pred)
+    # y_true = tf.cast(y_true, y_pred.dtype)
+    # print(type(y_true))
+    # print(type(y_pred))
+    # false_positives = tf.sum([y_t == 0 and y_p == 1 for y_t, y_p in zip(y_true, y_pred)])
+    # false_negatives = tf.sum([y_t == 1 and y_p == 0 for y_t, y_p in zip(y_true, y_pred)])
+    # print(type(false_positives))
+    # print(type(y_pred))
+
+    # precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
+    # recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
+
+    # return 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    # # return f1_score(y_true, y_pred)
+    # # metr = tf.keras.metrics.F1Score(threshold=0.5)
+    # # metr.update_state(y_true, y_pred)
+    # # return metr.result()
+
 
 def tunas(y_true, y_pred, params):
     ac = acc(y_true, y_pred)
     beta = -0.4
     target_params = 100_000
     return ac + beta*tf.math.abs(params / target_params - 1)
+
+def f1_tunas(y_true, y_pred, params):
+    sc = f1(y_true, y_pred)
+    beta = -0.4
+    target_params = 10_000
+    return sc + beta*tf.math.abs(params / target_params - 1)
 
 def mae_tunas(y_true, y_pred, params):
     err = mae(y_true, y_pred)
@@ -76,12 +165,14 @@ def to_tfp(metric_func):
 # a distribution
 tfp_r2 = to_tfp(r2)
 tfp_mae = to_tfp(mae)
+tfp_f1 = to_tfp(f1)
 tfp_mse = to_tfp(mse)
 tfp_rmse = to_tfp(rmse)
 
 metrics_func = OrderedDict()
 metrics_func["mean_absolute_error"] = metrics_func["mae"] = mae
 metrics_func["r2"] = r2
+metrics_func["f1"] = f1
 metrics_func["mean_squared_error"] = metrics_func["mse"] = mse
 metrics_func["root_mean_squared_error"] = metrics_func["rmse"] = rmse
 metrics_func["accuracy"] = metrics_func["acc"] = acc
@@ -93,6 +184,7 @@ metrics_func["mae_tunas"] = metrics_func["mae_tunas_obj"] = mae_tunas
 metrics_func["tfp_r2"] = tfp_r2
 metrics_func["tfp_mse"] = tfp_mse
 metrics_func["tfp_mae"] = tfp_mae
+metrics_func["tfp_f1"] = tfp_f1
 metrics_func["tfp_rmse"] = tfp_rmse
 
 metrics_obj = OrderedDict()
